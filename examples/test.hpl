@@ -1,0 +1,8 @@
+include math;
+
+program Main {
+    start {
+        let x be 10;
+        print "Hello";
+    }
+}

@@ -13,7 +13,8 @@ void hcpl_run(const char* filename) {
         return;
     }
 
-    printf("[HCPL] Lexing complete.\n");
+    printf("[HCPL] Lexing complete. Tokens:\n");
+    print_tokens(tokens);
 
     free_tokens(tokens);
 }

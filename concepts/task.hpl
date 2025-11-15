@@ -1,0 +1,20 @@
+include math;
+include system.io;
+include gui;
+
+program Main {
+
+    start {
+        print "Program started!";
+    }
+
+    button button_primary {
+        text be "Click Me";
+
+        on press {
+            let sum be math.add(10, 20);
+            print "Sum is " + sum;
+        }
+    }
+
+}
