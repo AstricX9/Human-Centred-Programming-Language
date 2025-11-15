@@ -1,21 +1,22 @@
-Param(
-    [string]$Action = "run",
-    [string]$File = ""
+param(
+    [string]$Action = 'run',
+    [string]$FileArg = 'examples\helloworld.hpl'
 )
 
-$Root = Split-Path -Parent $MyInvocation.MyCommand.Definition
-Set-Location $Root
+Set-Location $PSScriptRoot
 
-$BinDir = Join-Path $Root "bin"
-if (-not (Test-Path $BinDir)) { New-Item -ItemType Directory -Path $BinDir | Out-Null }
+$Exe = Join-Path $PSScriptRoot 'bin\hcpl.exe'
 
-function Build {
+function Build-HCPL {
     if (-not (Get-Command gcc -ErrorAction SilentlyContinue)) {
-        Write-Error "gcc not found in PATH. Install MinGW/MSYS2 and add gcc to PATH."
+        Write-Host 'Error: gcc not found in PATH. Install MinGW/MSYS2 and add gcc to PATH.'
         return 1
     }
 
-    $outExe = Join-Path $BinDir "hcpl.exe"
+    $binDir = Join-Path $PSScriptRoot 'bin'
+    if (-not (Test-Path $binDir)) { New-Item -ItemType Directory -Path $binDir | Out-Null }
+
+    Write-Host 'Building HCPL...'
 
     $sources = @(
         'core/main.c',
@@ -31,54 +32,41 @@ function Build {
         'modules/system_io.c'
     )
 
-    # Build by invoking gcc with an argument array to avoid quoting issues
     $args = @()
     $args += $sources
-    $args += "-I$Root\include"
-    $args += "-std=c11"
-    $args += "-Wall"
-    $args += "-Wextra"
-    $args += "-o"
-    $args += $outExe
+    $args += "-I" + (Join-Path $PSScriptRoot 'include')
+    $args += '-std=c11'
+    $args += '-Wall'
+    $args += '-Wextra'
+    $args += '-o'
+    $args += $Exe
 
-    Write-Host "Building with gcc..."
     & gcc @args
-    if ($LASTEXITCODE -ne 0) { Write-Error "Build failed (exit $LASTEXITCODE)"; return $LASTEXITCODE }
-    Write-Host "Built: $outExe"
+    if ($LASTEXITCODE -ne 0) { Write-Host 'Build failed.'; return $LASTEXITCODE }
+
+    Write-Host 'Build complete.'
     return 0
 }
 
-function Run-Exe {
-    $exe = Join-Path $BinDir "hcpl.exe"
-    if (-not (Test-Path $exe)) {
-        Write-Host "Executable not found — building first..."
-        $b = Build; if ($b -ne 0) { return $b }
+function Run-HCPL {
+    if (-not (Test-Path $Exe)) {
+        Write-Host 'hcpl.exe not found. Building first...'
+        $b = Build-HCPL; if ($b -ne 0) { return $b }
     }
 
-    if ($File -ne "") {
-        Write-Host "Running: $exe run $File`n"
-        & $exe run $File
-    } else {
-        Write-Host "Running: $exe (no file provided) `n"
-        & $exe
-    }
-
-    return $LASTEXITCODE
+    Write-Host "Running: $FileArg"
+    & $Exe run $FileArg
 }
 
-switch ($Action.ToLower()) {
-    'build' { exit (Build) }
-    'run'   { exit (Run-Exe) }
-    'clean' {
-        if (Test-Path $BinDir) { Remove-Item $BinDir -Recurse -Force; Write-Host "Cleaned: $BinDir" } else { Write-Host "Nothing to clean." }
-        exit 0
-    }
-    'rebuild' {
-        if (Test-Path $BinDir) { Remove-Item $BinDir -Recurse -Force }
-        exit (Build)
-    }
-    default {
-        Write-Host "Usage: .\run.ps1 [run|build|clean|rebuild] [file]"
-        exit 1
-    }
+function Clean-HCPL {
+    $bin = Join-Path $PSScriptRoot 'bin'
+    if (Test-Path $bin) { Remove-Item -Recurse -Force $bin; Write-Host 'Clean complete.' } else { Write-Host 'Nothing to clean.' }
+}
+
+switch ($Action) {
+    'build'   { Build-HCPL }
+    'clean'   { Clean-HCPL }
+    'rebuild' { Clean-HCPL; Build-HCPL }
+    'run'     { Build-HCPL; Run-HCPL }
+    default   { Write-Host 'Usage: .\run.ps1 [run|build|clean|rebuild] [file]' }
 }
