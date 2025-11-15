@@ -1,0 +1,4 @@
+// Placeholder standard library (HCPL)
+task Math {
+    // math helpers will live here
+}

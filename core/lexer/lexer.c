@@ -1,8 +1,8 @@
+#include "lexer.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include "lexer.h"
 
 typedef struct {
     char* source;
@@ -13,9 +13,15 @@ typedef struct {
     int token_count;
 } LexerState;
 
-// ------------------------------------
+static char* make_str(const char* src, int len) {
+    char* s = malloc(len + 1);
+    if (!s) return NULL;
+    memcpy(s, src, len);
+    s[len] = '\0';
+    return s;
+}
+
 // Helper: create and push token
-// ------------------------------------
 void push_token(LexerState* ls, TokenType type, const char* text) {
     Token t;
     t.type = type;
@@ -24,9 +30,7 @@ void push_token(LexerState* ls, TokenType type, const char* text) {
     ls->tokens[ls->token_count++] = t;
 }
 
-// ------------------------------------
 // Read whole file
-// ------------------------------------
 char* read_file(const char* filename) {
     FILE* f = fopen(filename, "rb");
     if (!f) return NULL;
@@ -43,9 +47,7 @@ char* read_file(const char* filename) {
     return buffer;
 }
 
-// ------------------------------------
 // Check if identifier is a keyword
-// ------------------------------------
 TokenType keyword_type(const char* text) {
     if (strcmp(text, "include") == 0) return TOKEN_INCLUDE;
     if (strcmp(text, "program") == 0) return TOKEN_PROGRAM;
@@ -59,9 +61,7 @@ TokenType keyword_type(const char* text) {
     return TOKEN_IDENTIFIER;
 }
 
-// ------------------------------------
 // Main lexing loop
-// ------------------------------------
 Token* lex_file(const char* filename) {
 
     LexerState ls = {0};
@@ -82,21 +82,20 @@ Token* lex_file(const char* filename) {
         char c = ls.source[ls.index];
 
         // Skip whitespace
-        if (isspace(c)) {
+        if (isspace((unsigned char)c)) {
             ls.index++;
             continue;
         }
 
-        // Identifiers or keywords
-        if (isalpha(c)) {
+        // Identifiers or keywords (allow underscore)
+        if (isalpha((unsigned char)c)) {
             int start = ls.index;
 
-            /* allow letters, digits and underscore in identifiers */
             while (isalnum((unsigned char)ls.source[ls.index]) || ls.source[ls.index] == '_')
                 ls.index++;
 
             int len = ls.index - start;
-            char* text = strndup(ls.source + start, len);
+            char* text = make_str(ls.source + start, len);
 
             TokenType type = keyword_type(text);
             push_token(&ls, type, text);
@@ -106,13 +105,13 @@ Token* lex_file(const char* filename) {
         }
 
         // Numbers
-        if (isdigit(c)) {
+        if (isdigit((unsigned char)c)) {
             int start = ls.index;
 
-            while (isdigit(ls.source[ls.index]))
+            while (isdigit((unsigned char)ls.source[ls.index]))
                 ls.index++;
 
-            char* num = strndup(ls.source + start, ls.index - start);
+            char* num = make_str(ls.source + start, ls.index - start);
             push_token(&ls, TOKEN_NUMBER, num);
             free(num);
             continue;
@@ -127,7 +126,7 @@ Token* lex_file(const char* filename) {
                 ls.index++;
 
             int len = ls.index - start;
-            char* str = strndup(ls.source + start, len);
+            char* str = make_str(ls.source + start, len);
 
             push_token(&ls, TOKEN_STRING, str);
             free(str);
@@ -155,11 +154,10 @@ Token* lex_file(const char* filename) {
 
     push_token(&ls, TOKEN_EOF, NULL);
     return ls.tokens;
+
+// Print tokens for debugging
 }
 
-// ------------------------------------
-// Print tokens for debugging
-// ------------------------------------
 void print_tokens(Token* tokens) {
     int i = 0;
     while (tokens[i].type != TOKEN_EOF) {
@@ -175,9 +173,7 @@ void print_tokens(Token* tokens) {
     printf("Token %d: type=%d\n", i, tokens[i].type);
 }
 
-// ------------------------------------
 // Free tokens
-// ------------------------------------
 void free_tokens(Token* tokens) {
     // free text fields
     int i = 0;

@@ -1,9 +1,6 @@
 #ifndef HCPL_LEXER_H
 #define HCPL_LEXER_H
 
-#ifndef HCPL_LEXER_H
-#define HCPL_LEXER_H
-
 typedef enum {
     TOKEN_EOF,
     TOKEN_IDENTIFIER,
@@ -30,6 +27,19 @@ typedef enum {
     TOKEN_STAR,       // *
     TOKEN_SLASH       // /
 } TokenType;
+
+typedef struct {
+    TokenType type;
+    char* text;     // for identifier/string/number
+} Token;
+
+Token* lex_file(const char* filename);
+void free_tokens(Token* tokens);
+void print_tokens(Token* tokens);
+
+#endif /* HCPL_LEXER_H */
+#ifndef HCPL_LEXER_H
+#define HCPL_LEXER_H
 
 #ifndef HCPL_LEXER_H
 #define HCPL_LEXER_H
@@ -70,4 +80,4 @@ Token* lex_file(const char* filename);
 void free_tokens(Token* tokens);
 void print_tokens(Token* tokens);
 
-#endif
+#endif /* HCPL_LEXER_H */
