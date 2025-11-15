@@ -19,12 +19,18 @@ File Extension
 
 Project Structure
 ```
-hcpl/
-├─ src/                # C sources (main, lexer, parser, ast, interpreter, runtime)
-├─ include/            # Public/internal headers
-├─ examples/           # Example .hpl programs
-├─ bin/                # (created by runner) build outputs
-├─ run.ps1             # PowerShell runner for build/run/clean
+HCPL/
+├─ core/                # Core language implementation (C sources)
+│  ├─ lexer/
+│  ├─ parser/
+│  ├─ interpreter/
+│  ├─ runtime/
+│  └─ main.c            # launcher
+├─ include/             # Public/internal headers (canonical headers live here)
+├─ modules/             # Built-in native C modules
+├─ lib/                 # Standard library written in HCPL
+├─ examples/            # Example .hpl programs
+├─ bin/                 # (created by build) build outputs
 └─ README.md
 ```
 
@@ -33,37 +39,38 @@ Build & Run (Windows)
 Prerequisites
 - Install GCC (MinGW-w64) — using MSYS2 is recommended: https://www.msys2.org
 
-Build or run using the provided PowerShell runner `run.ps1`.
+Build (recommended quick command)
 
-From PowerShell in the project root:
+From PowerShell or CMD in the project root you can compile the core sources directly:
 ```powershell
-# Build only
-.\run.ps1 build
-
-# Build and run (default)
-.\run.ps1 run
-
-# Clean build artifacts
-.\run.ps1 clean
+gcc core/main.c \
+	core/lexer/lexer.c \
+	core/parser/parser.c core/parser/ast.c \
+	core/interpreter/interpreter.c \
+	core/runtime/runtime.c \
+	core/objects/object.c core/objects/string.c core/objects/number.c \
+	modules/math.c modules/system_io.c \
+	-Iinclude -std=c11 -Wall -Wextra -o hcpl.exe
 ```
 
-The runner will create a `bin/` directory and place `hcpl.exe` there.
-
-Example: run the included example
+This produces `hcpl.exe` in the project root. Example run:
 ```powershell
-.\run.ps1 run examples\hello.hcpl
+.\hcpl.exe run examples\helloworld.hpl
 ```
 
 Notes about GCC
-- If `gcc` is not on your PATH, the runner will show an error and instructions to install/enable it.
+- If `gcc` is not on your PATH, install it (MSYS2/MinGW-w64) and add the MinGW `bin` directory to PATH.
 
 Example HCPL snippets
 
-Hello World
+Hello World Application
 ```hpl
-task Hello {
-	print "Hello World";
+program Main {
+    start {
+        print "Hello World";
+    }
 }
+
 ```
 
 Variables & Expressions

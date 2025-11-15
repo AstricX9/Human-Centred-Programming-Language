@@ -91,7 +91,8 @@ Token* lex_file(const char* filename) {
         if (isalpha((unsigned char)c)) {
             int start = ls.index;
 
-            while (isalnum((unsigned char)ls.source[ls.index]) || ls.source[ls.index] == '_')
+            /* allow letters, digits, underscore and dot in identifiers (dotted namespaces) */
+            while (isalnum((unsigned char)ls.source[ls.index]) || ls.source[ls.index] == '_' || ls.source[ls.index] == '.')
                 ls.index++;
 
             int len = ls.index - start;
