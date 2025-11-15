@@ -94,5 +94,5 @@ Contributing
 - HCPL is an early-stage experimental project. Contributions, ideas and issues are welcome. Please open issues or PRs with small, focused changes.
 
 License & Contact
-- Currently experimental — no licence file included yet. Add a `LICENSE` if you want to publish.
+- Currently experimental — no licence included yet.
 - For questions, open an issue in the repository.
