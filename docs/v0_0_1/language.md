@@ -440,3 +440,71 @@ if a is greater than b and c is not equal to d {
 ---
 
 Changelog: this document is v0.1 — keep a small changelog in the repo to track future syntax changes.
+
+---
+
+## Parser implementation notes (added with the v0.1 parser)
+
+Three places where this document is ambiguous or self-contradictory. The
+parser in `core/parser/parser.c` resolves them as follows; change the parser,
+not just this list, if a different answer is wanted.
+
+### 1. Operator precedence: the prose wins
+
+The Design Overview and the arithmetic section both state that HCPL evaluates
+left to right with no operator precedence, so `10 + 5 * 2` is `((10 + 5) * 2)`
+= 30. The condensed grammar at the end of this document says otherwise:
+
+```
+Expr := Term ( ("+"|"-") Term )*
+Term := Factor ( ("*"|"/") Factor )*
+```
+
+That is the conventional precedence split and contradicts the prose. The
+parser implements **no precedence, left-associative**, because the prose says
+it twice and states it normatively. The grammar summary above should be
+corrected to:
+
+```
+Expr := Unary ( ("+"|"-"|"*"|"/") Unary )*
+```
+
+### 2. Argument separators: `and` and `,` are both accepted
+
+The spec links arguments and parameters with `and` (`math.add(10 and 20)`),
+but `concepts/task.hpl` uses commas (`math.add(10, 20)`). The parser accepts
+either until one is chosen.
+
+This is the single most consequential open question in the language, because
+`and` is simultaneously the argument separator and the logical connector in
+`if a is greater than b and c is not equal to d`. Today they never collide:
+`Expr` contains no `and`, so the role is fixed by context -- separator inside
+call parentheses, connector between comparisons. That stops holding the moment
+a comparison is allowed as an argument, e.g. `f(a is greater than b)`, which
+the grammar does not currently permit.
+
+### 3. `is greater than or equal to` versus `or`
+
+`a is greater than or equal to b` and `a is greater than b or c is less than d`
+diverge three tokens after `than`. The parser looks ahead for the exact
+sequence `or` `equal` `to` and treats it as part of the comparator; any other
+`or` is a connector. This needs three tokens of lookahead, which is free here
+because the lexer produces the whole token array up front.
+
+### Deliberate extensions beyond the written grammar
+
+- **Unary minus** (`-7`). Not in the grammar; rejecting it produced a
+  confusing error for something every writer will try.
+- **A bare expression as a condition** (`if flag { }`). The grammar demands a
+  comparator; allowing a plain expression costs nothing and keeps errors
+  pointed at the right token.
+- **Event names are ordinary identifiers.** The grammar says
+  `EventBlock := "on" IDENTIFIER Block`, so `press` is not a reserved word and
+  `on hover { }` works. The earlier lexer had a dedicated `press` keyword.
+
+### Not yet implemented
+
+The desugar pass (section 4) is not written. `increase hp by 20` parses to an
+explicit `Natural` node and is **not** rewritten into `hp = hp + 20`, matching
+this document's advice to keep natural forms explicit until a separate,
+independently testable normalisation pass runs.

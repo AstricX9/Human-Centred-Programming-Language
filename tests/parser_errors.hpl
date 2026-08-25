@@ -1,0 +1,21 @@
+include ;
+
+task Broken {
+    let x be ;
+    let y be 10
+    print "still parsing";
+    if a is fnord b {
+        print "bad comparator";
+    }
+    set to 5;
+}
+
+task Recovered {
+    print "this task must still parse";
+}
+
+program 42 {
+    start {
+        print "unterminated
+    }
+}

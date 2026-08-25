@@ -1,9 +1,7 @@
-#ifndef CORE_PARSER_H
-#define CORE_PARSER_H
+#ifndef CORE_PARSER_FORWARD_H
+#define CORE_PARSER_FORWARD_H
 
-/* Minimal parser header (placeholder) */
-#include "../lexer/lexer.h"
+/* Forward to the canonical project header */
+#include "../../include/parser.h"
 
-void parser_init(void);
-
-#endif
+#endif /* CORE_PARSER_FORWARD_H */

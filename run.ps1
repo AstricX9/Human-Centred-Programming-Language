@@ -20,6 +20,8 @@ function Build-HCPL {
 
     $sources = @(
         'core/main.c',
+        'core/util/arena.c',
+        'core/util/diag.c',
         'core/lexer/lexer.c',
         'core/parser/parser.c',
         'core/parser/ast.c',

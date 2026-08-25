@@ -1,0 +1,101 @@
+// Exercises every construct in docs/v0_0_1/language.md.
+// Run: hcpl.exe run tests/parser_coverage.hpl
+
+include math;
+include system.io;
+
+/* Block comments span
+   several lines. */
+
+function clamp(value and min and max) {
+    if value is less than min {
+        return min;
+    }
+    else if value is greater than max {
+        return max;
+    }
+    return value;
+}
+
+task Numbers {
+    let count be 120;
+    let ratio be 14.5;
+    let scaled be 1.5e3;
+
+    // No operator precedence: this is ((10 + 5) * 2) = 30, not 20.
+    let mixed be 10 + 5 * 2;
+
+    let negated be -7;
+    let grouped be 2 * (3 + 4);
+}
+
+task Literals {
+    let enabled be yes;
+    let disabled be no;
+    let short_wait be 30s;
+    let medium_wait be 2m;
+    let long_wait be 1h;
+    let quoted be "she said \"hi\"\nand left";
+}
+
+task Comparisons {
+    // `or equal to` must attach to the comparator, not start a new comparison.
+    if a is greater than or equal to b {
+        print "ge";
+    }
+    else if a is less than or equal to b {
+        print "le";
+    }
+    else if a is not equal to b {
+        print "ne";
+    }
+    else if a is equal to b {
+        print "eq";
+    }
+
+    // Here the same `or` is a connector between two whole comparisons.
+    if a is greater than b or c is less than d {
+        print "either";
+    }
+
+    if a is greater than b and c is not equal to d {
+        print "both";
+    }
+}
+
+task NaturalArithmetic {
+    increase hp by 20;
+    reduce armor by 10;
+    multiply chance by 1.3;
+    divide time by 2;
+}
+
+task Calls {
+    // `and` separates arguments here rather than joining conditions.
+    let sum be math.add(10 and 20);
+    let clamped be clamp(5 and 0 and 10);
+    system.io.write("log.txt" and "Hello");
+    Numbers();
+}
+
+program Main {
+    start {
+        set hp to 500;
+        set name to "Player";
+        print "Value is " + hp;
+        Calls();
+    }
+
+    button button_primary {
+        text be "Click Me";
+
+        on press {
+            let sum be math.add(10 and 20);
+            print "Sum is " + sum;
+        }
+
+        on hover {
+            print "hovering";
+        }
+    }
+}
